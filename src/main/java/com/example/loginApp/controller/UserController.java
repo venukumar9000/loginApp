@@ -26,6 +26,7 @@ public class UserController {
     // Register a new user
     @PostMapping
     public ResponseEntity<User> createUser(@RequestBody User user) {
+        System.out.println("hello world");
         return ResponseEntity.ok(userService.createUser(user));
     }
     @PostMapping("/login")
