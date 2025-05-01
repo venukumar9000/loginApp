@@ -9,4 +9,4 @@ ADD target/loginApp-0.0.1-SNAPSHOT.jar loginapp
 EXPOSE 8088
 
 # Run the jar file
-ENTRYPOINT ["java", "-jar", "loginapp"]
+ENTRYPOINT ["java", "-jar", "loginapp","--spring.profiles.active=docker"]
