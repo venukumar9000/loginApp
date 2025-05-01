@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  mysql-container:
+    image: mysql:8
+    container_name: mysql-container
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: loginappdb
+      MYSQL_USER: loginuser
+      MYSQL_PASSWORD: loginpassword
+    ports:
+      - "3306:3306"
+
+  loginapp:
+    image: loginapp
+    container_name: loginapp
+    build:
+      context: .  # Build context should be the current directory
+      dockerfile: Dockerfile  # Optional: Only needed if the Dockerfile is not named 'Dockerfile'
+    ports:
+      - "8088:8088"
+    depends_on:
+      - mysql-container
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-container:3306/loginappdb
+      SPRING_DATASOURCE_USERNAME: loginuser
+      SPRING_DATASOURCE_PASSWORD: loginpassword
