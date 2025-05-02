@@ -3,28 +3,38 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - develop  # Change to your default branch if different
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
+      # Step 1: Checkout the repository
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
-      - name: Set up SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ec2-13-61-11-77.eu-north-1.compute.amazonaws.com >> ~/.ssh/known_hosts
+      # Step 2: Set up SSH keys
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}  # Make sure you set EC2_SSH_KEY in GitHub Secrets
 
-      - name: Deploy via SSH
+      # Step 3: Clone repository (if not already done)
+      - name: Clone repository on EC2
         run: |
-          ssh ubuntu@ec2-13-61-11-77.eu-north-1.compute.amazonaws.com << 'EOF'
-            cd ~/loginapp || git clone https://github.com/venukumar9000/loginApp loginapp && cd loginapp
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
+            if [ ! -d "~/loginApp" ]; then
+              git clone https://github.com/venukumar9000/loginApp ~/loginApp
+            fi
+            cd ~/loginApp
             git pull origin main
+          EOF
+
+      # Step 4: Run Docker commands on EC2
+      - name: Deploy application using Docker Compose
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP }} << 'EOF'
+            cd ~/loginApp
             docker-compose down
             docker-compose up --build -d
           EOF
