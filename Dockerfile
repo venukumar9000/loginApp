@@ -1,12 +1,19 @@
+# Stage 1: Build the JAR using Maven
+FROM maven:3.9.6-eclipse-temurin-17 AS builder
+
+WORKDIR /app
+
+COPY . .
+
+RUN mvn clean package -DskipTests
+
+# Stage 2: Run the application using OpenJDK
 FROM openjdk:17-jdk-alpine
 
-# Set the working directory inside the container
+WORKDIR /app
 
-# Copy the application's jar to the container
-ADD target/loginApp-0.0.1-SNAPSHOT.jar loginapp
+COPY --from=builder /app/target/loginApp-0.0.1-SNAPSHOT.jar loginapp.jar
 
-# Expose port 8081 to the outside world
 EXPOSE 8088
 
-# Run the jar file
-ENTRYPOINT ["java", "-jar", "loginapp","--spring.profiles.active=docker"]
+ENTRYPOINT ["java", "-jar", "loginapp.jar", "--spring.profiles.active=docker"]

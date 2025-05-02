@@ -12,13 +12,15 @@ services:
       MYSQL_PASSWORD: loginpassword
     ports:
       - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
 
   loginapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: loginapp
     container_name: loginapp
-    build:
-      context: .  # Build context should be the current directory
-      dockerfile: Dockerfile  # Optional: Only needed if the Dockerfile is not named 'Dockerfile'
     ports:
       - "8088:8088"
     depends_on:
@@ -27,3 +29,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql-container:3306/loginappdb
       SPRING_DATASOURCE_USERNAME: loginuser
       SPRING_DATASOURCE_PASSWORD: loginpassword
+    restart: on-failure
+
+volumes:
+  mysql_data:
