@@ -1,0 +1,55 @@
+name: CI-CD Pipeline for loginApp
+
+on:
+  push:
+    branches: [ main,develop ]
+  pull_request:
+    branches: [ main,develop ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+
+      - name: Build with Maven (skip tests if no unit tests)
+        run: mvn clean package -DskipTests
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Run Docker Compose
+        run: docker compose up -d --build
+
+      - name: Wait for MySQL to be ready
+        run: |
+          echo "Waiting for MySQL to be ready..."
+          until docker exec mysql-container mysql -uloginuser -ploginpassword -e "SHOW DATABASES;" > /dev/null 2>&1; do
+            echo "Waiting for database..."
+            sleep 5
+          done
+          echo "MySQL is ready!"
+
+      - name: Verify Containers
+        run: docker ps -a
+
+      - name: Tear down Docker Compose (optional cleanup)
+        if: always()
+        run: docker compose down
+
