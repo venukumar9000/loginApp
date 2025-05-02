@@ -18,7 +18,7 @@ services:
       - mysql_data:/var/lib/mysql
 
   loginapp:
-    image: loginapp
+    image: venujohn/nikhil
     container_name: loginapp
     restart: unless-stopped
     build:
