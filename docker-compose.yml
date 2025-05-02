@@ -12,18 +12,29 @@ services:
       MYSQL_PASSWORD: loginpassword
     ports:
       - "3306:3306"
+
+
     networks:
       - myloginappnetwork
+
     volumes:
       - mysql_data:/var/lib/mysql
 
   loginapp:
+
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: loginapp
+    container_name: loginapp
+
     image: venujohn/nikhil
     container_name: loginapp
     restart: unless-stopped
     build:
       context: .
       dockerfile: Dockerfile
+
     ports:
       - "8088:8088"
     networks:
@@ -35,9 +46,13 @@ services:
       SPRING_DATASOURCE_USERNAME: loginuser
       SPRING_DATASOURCE_PASSWORD: loginpassword
 
+    restart: on-failure
+
+
 networks:
   myloginappnetwork:
     driver: bridge
+
 
 volumes:
   mysql_data:
